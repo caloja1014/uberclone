@@ -51,7 +51,6 @@ int main(int argc, char const *argv[])
     char dato[MAX_BUFFER_SIZE];
     memset(dato, 0, MAX_BUFFER_SIZE);
     strcat(dato, cantidad_clientes);
-    
     write(fd, dato, sizeof(dato));
     close(fd);
     return 0;
