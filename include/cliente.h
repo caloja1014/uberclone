@@ -2,7 +2,7 @@
 #define CLIENTE
 #include <stdlib.h>
 
-struct cliente_struct
+typedef struct cliente_struct
 {
     int id;
     bool isvip;
@@ -11,7 +11,7 @@ struct cliente_struct
     int px_final;
     int py_inicial;
     int py_final;
-} typedef Cliente;
+}  Cliente;
 
 Cliente *creat_cliente(int id, bool isvip, int x_turnos_espera, int px_inicial, int px_final, int py_inicial, int py_final);
 void destruir_cliente(Cliente *cliente);
