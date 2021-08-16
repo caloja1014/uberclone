@@ -1,12 +1,12 @@
-DEPS = include/common.h include/queue.h 
+DEPS = include/*.h
 CFLAGS= -Wall -c -o
 
 .PHONY: all debug sanitize clean
 
 all: planificador incrementar_cantidad_clientes
 
-planificador: obj/sistema_control.o $(DEPS)
-	gcc -o $@ obj/sistema_control.o $(DFLAGS)
+planificador: obj/sistema_control.o obj/queue.o obj/cliente.o obj/taxista.o $(DEPS)
+	gcc -o $@ obj/sistema_control.o obj/queue.o obj/cliente.o obj/taxista.o $(DFLAGS)
 incrementar_cantidad_clientes: obj/incrementador.o $(DEPS)
 	gcc -o $@ obj/incrementador.o $(DFLAGS)
 

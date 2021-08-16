@@ -5,7 +5,9 @@
         "cstdlib": "c",
         "memory": "c",
         "taxista.h": "c",
-        "cliente.h": "c"
+        "cliente.h": "c",
+        "queue.h": "c",
+        "stdbool.h": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }

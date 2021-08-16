@@ -1,4 +1,8 @@
 #include "../include/common.h"
+#include "../include/queue.h"
+#include "../include/taxista.h"
+#include "../include/cliente.h"
+
 #define MAX_BUF_SIZE 1024
 void print_help(char *command)
 {
@@ -17,6 +21,13 @@ int main(int argc, char const *argv[])
     char buf[MAX_BUF_SIZE];
 
     mkfifo(numbers, 0666);
+
+    Queue *queue = crear_queue(sizeof(Taxista));
+    Taxista * t1=crear_taxista(1,1,1);
+    Taxista * t2=crear_taxista(2,2,2);
+    enqueue(queue, t1);
+    enqueue(queue, t2);
+
     while (1)
     {
         memset(buf, 0, MAX_BUF_SIZE);

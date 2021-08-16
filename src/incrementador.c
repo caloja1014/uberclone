@@ -15,8 +15,12 @@ int main(int argc, char const *argv[])
     int opt, fd;
     char *numbers = "numbers";
     char *cantidad_clientes;
+
     // mknod(numbers,S_IFIFO|0666,0);
     // mkfifo(numbers, 0666);
+    
+    
+
     fd = open("numbers", O_WRONLY);
     while ((opt = getopt(argc, argv, "h:")) != -1)
     {

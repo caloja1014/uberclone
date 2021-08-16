@@ -1,7 +1,8 @@
 #ifndef QUEUE
 #define QUEUE
 #include <stdio.h>
-
+#include <string.h>
+#include <stdlib.h>
 typedef struct node_struct{
     void *data;
     struct node_struct *next;
@@ -16,7 +17,7 @@ typedef struct queue_struct{
 
 Queue * crear_queue(size_t mem_size);
 
-int enqueue(Queue *q, void *data);
+int enqueue(Queue *q,const void *data);
 void dequeue(Queue *q);
 void clear_queue (Queue *q);
 unsigned get_size(Queue *q);

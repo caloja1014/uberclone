@@ -9,8 +9,9 @@ Queue *crear_queue(size_t mem_size)
     return queue;
 }
 
-int enqueue(Queue *q, void *data)
+int enqueue(Queue *q, const void *data)
 {
+    
     Node *new_node = (Node *)malloc(sizeof(Node));
     if (new_node == NULL)
     {
