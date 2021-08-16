@@ -9,4 +9,4 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#endif
+#endif // COMMON_H
