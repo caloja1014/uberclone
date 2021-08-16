@@ -7,7 +7,10 @@
         "taxista.h": "c",
         "cliente.h": "c",
         "queue.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "common.h": "c",
+        "string.h": "c",
+        "stdio.h": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }
