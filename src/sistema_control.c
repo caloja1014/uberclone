@@ -11,11 +11,23 @@ void print_help(char *command)
 }
 int main(int argc, char const *argv[])
 {
-    int fd;
-    char * numeros="numbers";
-    char buf[MAX_BUF_SIZE] ;
+    int fd,noread;
+    char *numbers = "numbers";
+    char buf[MAX_BUF_SIZE];
 
-    fd=open(numeros,O_RDONLY);
+    mkfifo(numbers, 0666);
+
+    while (1)
+    {
+        memset(buf, 0, MAX_BUF_SIZE);
+        fd = open(numbers, O_RDONLY);
+        noread=read(fd, buf, sizeof(buf));
+        buf[noread] = '\0';
+        printf("%s\n", buf);
+        close(fd);
+        
+    }
+
     printf("Received: %s\n", buf);
     close(fd);
     return 0;

@@ -15,7 +15,7 @@ int main(int argc, char const *argv[])
     int opt, fd;
     char *numbers = "numbers";
     char *cantidad_clientes;
-    mknod(numbers,S_IFIFO|0666,0);
+    // mknod(numbers,S_IFIFO|0666,0);
     // mkfifo(numbers, 0666);
     fd = open("numbers", O_WRONLY);
     while ((opt = getopt(argc, argv, "h:")) != -1)
@@ -37,7 +37,7 @@ int main(int argc, char const *argv[])
     for (index = optind; index < argc; index++)
         contador++;
 
-    if (contador != 2)
+    if (contador != 1)
     {
         fprintf(stderr, "Use:\n %s <#VIP,#NVIP>", argv[0]);
         fprintf(stderr, "\t\t\t\t%s -h\n", argv[0]);
@@ -49,8 +49,10 @@ int main(int argc, char const *argv[])
     }
     printf("%s\n", cantidad_clientes);
     char dato[MAX_BUFFER_SIZE];
+    memset(dato, 0, MAX_BUFFER_SIZE);
     strcat(dato, cantidad_clientes);
     
     write(fd, dato, sizeof(dato));
+    close(fd);
     return 0;
 }
