@@ -3,7 +3,9 @@
         "signal.h": "c",
         "*.tcc": "c",
         "cstdlib": "c",
-        "memory": "c"
+        "memory": "c",
+        "taxista.h": "c",
+        "cliente.h": "c"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }
