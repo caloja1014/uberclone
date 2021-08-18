@@ -26,8 +26,8 @@ int main(int argc, char const *argv[])
 
     Queue *queue = crear_queue(sizeof(Taxista));
 
-    Taxista *t1 = crear_taxista(1, 1, 1);
-    Taxista *t2 = crear_taxista(2, 2, 2);
+    Taxista *t1 = crear_taxista( 1, 1);
+    Taxista *t2 = crear_taxista( 2, 2);
     enqueue(queue, t1);
     enqueue(queue, t2);
 

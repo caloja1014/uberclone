@@ -12,6 +12,6 @@ typedef struct taxista_struct
 
 }  Taxista;
 
-Taxista * crear_taxista(int id, int pos_x, int pos_y);
+Taxista * crear_taxista( int pos_x, int pos_y);
 
 #endif /*TAXISTA */

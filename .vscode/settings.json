@@ -10,7 +10,8 @@
         "stdbool.h": "c",
         "common.h": "c",
         "string.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "time.h": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }
