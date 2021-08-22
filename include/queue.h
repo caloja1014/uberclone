@@ -18,7 +18,7 @@ typedef struct queue_struct{
 Queue * crear_queue(size_t mem_size);
 
 int enqueue(Queue *q,const void *data);
-void dequeue(Queue *q);
+void * dequeue(Queue *q);
 void clear_queue (Queue *q);
 unsigned get_size(Queue *q);
 

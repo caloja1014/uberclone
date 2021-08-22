@@ -39,7 +39,7 @@ int enqueue(Queue *q, const void *data)
     q->size_queue++;
     return 0;
 }
-void dequeue(Queue *q){
+void * dequeue(Queue *q){
     if (q->size_queue > 0){
         Node *temp=q->head;
         if (q->size_queue >1){
@@ -48,8 +48,7 @@ void dequeue(Queue *q){
             q->head=NULL;
         }
         q->size_queue--;
-        free(temp->data);
-        free(temp);
+    return temp->data;
     }
 }
 void clear_queue (Queue *q){

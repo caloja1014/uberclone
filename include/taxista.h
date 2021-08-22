@@ -8,7 +8,7 @@ typedef struct taxista_struct
     int id;
     int pos_x;
     int pos_y;
-    bool is_free;
+    bool is_available;
 
 }  Taxista;
 
