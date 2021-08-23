@@ -1,17 +1,21 @@
 #include "../include/planificador.h"
 
 int rand_between(int minimum_number, int max_number);
-void crear_clientes(void *queue_cliente, int n_cliente, int tamanio_grilla);
+void crear_clientes(void *queue_cliente, int n_cliente, int tamanio_grilla,bool isvip);
 void crear_taxistas(void *queue_taxista, int n_taxistas, unsigned tamanio_grilla);
 void sleep_thread_taxista(void *arg);
 void sleep_thread_cliente(void *arg);
+Tupla  *respuesta;
+
 typedef struct tuple_sleep_thread
 {
-  Taxista *taxista;
+  void *usuario;
   int tiempo_sleep;
+  Queue * queue;
 } tuple_sleep;
 Planificador *crear_planificador(int n_clientes_vip, int n_clientes_no_vip, int n_taxistas, unsigned tamanio_grilla, double z_distance, double u_segundos)
 {
+  respuesta = (Tupla *)malloc(sizeof(Tupla));
   Planificador *planificador = (Planificador *)malloc(sizeof(Planificador));
   planificador->is_waiting_x_turnos = false;
   planificador->n_clientes_vip = n_clientes_vip;
@@ -35,11 +39,15 @@ void aumentar_clientes(Planificador *planificador, int n_clientes_vip, int n_cli
   planificador->n_clientes_vip += n_clientes_vip;
   planificador->n_clientes_no_vip += n_clientes_no_vip;
   int tamanio_grilla = planificador->tamanio_grilla;
-  crear_clientes(planificador->clientes_vip, n_clientes_vip, tamanio_grilla);
-  crear_clientes(planificador->clientes_no_vip, n_clientes_no_vip, tamanio_grilla);
+  printf("QUEUE VIP ANTES DE CREAR %d\n",planificador->clientes_vip->size_queue);
+  crear_clientes(planificador->clientes_vip, n_clientes_vip, tamanio_grilla, true);
+  printf("QUEUE VIP DESPUES DE CREAR %d\n",planificador->clientes_vip->size_queue);
+  printf("QUEUE NO VIP ANTES DE CREAR %d\n",planificador->clientes_no_vip->size_queue);
+  crear_clientes(planificador->clientes_no_vip, n_clientes_no_vip, tamanio_grilla,false);
+  printf("QUEUE NO VIP DESPUES DE CREAR %d\n",planificador->clientes_no_vip->size_queue);
 }
 
-void crear_clientes(void *queue_cliente, int n_cliente, int tamanio_grilla)
+void crear_clientes(void *queue_cliente, int n_cliente, int tamanio_grilla,bool isvip)
 {
   Queue *cola = (Queue *)queue_cliente;
   for (int i = 0; i < n_cliente; i++)
@@ -48,8 +56,8 @@ void crear_clientes(void *queue_cliente, int n_cliente, int tamanio_grilla)
     int py_inicial = rand_between(-1 * tamanio_grilla, tamanio_grilla);
     int px_final = rand_between(-1 * tamanio_grilla, tamanio_grilla);
     int py_final = rand_between(-1 * tamanio_grilla, tamanio_grilla);
-    printf("Cliente %d: (%d, %d) -> (%d, %d)\n", i, px_inicial, py_inicial, px_final, py_final);
-    Cliente *cliente = crear_cliente(true, 0, px_inicial, px_final, py_inicial, py_final);
+    // printf("Cliente %d: (%d, %d) -> (%d, %d)\n", i, px_inicial, py_inicial, px_final, py_final);
+    Cliente *cliente = crear_cliente(isvip, 0, px_inicial, px_final, py_inicial, py_final);
     enqueue(queue_cliente, cliente);
   }
 }
@@ -60,7 +68,7 @@ void crear_taxistas(void *queue_taxista, int n_taxistas, unsigned tamanio_grilla
   {
     int pos_x = rand_between(-1 * tamanio_grilla, tamanio_grilla);
     int pos_y = rand_between(-1 * tamanio_grilla, tamanio_grilla);
-    printf("Pos Taxis %d %d\n", pos_x, pos_y);
+    // printf("Pos Taxis %d %d\n", pos_x, pos_y);
     Taxista *taxista = crear_taxista(pos_x, pos_y);
     enqueue(queue_taxista, taxista);
   }
@@ -102,34 +110,34 @@ void *planificar(void *plan)
           Node *previo_actual_cliente;
           Node *futuro_siguiente_actual_cliente;
 
-          if (clientes->size_queue == 0 || clientes->size_queue == 1)
+          if (clientes->size_queue == 0)
           {
-            cliente->destroy = true;
-            pthread_mutex_lock(&cliente->lock);
-            pthread_mutex_destroy(&cliente->lock);
-            pthread_cond_destroy(&cliente->notify);
+            clientes->head = clientes->tail = cliente;
+            cliente->next = cliente->prev = NULL;
+            clientes->size_queue++;
+            clientes->no_ocuped++;
+          }
+          // if (clientes->size_queue == 0 || clientes->size_queue == 1)
+          // {
+          //   cliente->destroy = true;
+          //   pthread_mutex_lock(&cliente->lock);
+          //   pthread_mutex_destroy(&cliente->lock);
+          //   pthread_cond_destroy(&cliente->notify);
             // pthread_cancel(cliente->thread_id);
-            enqueue(clientes, cliente->data);
-          }
-          else if (clientes->size_queue == 2)
+          //   enqueue(clientes, cliente->data);
+          // }
+          else if (clientes->size_queue == 1)
           {
-            Node *temp1 = dequeue(clientes);
-            Node *temp2 = dequeue(clientes);
-            temp1->destroy = true;
-            temp2->destroy = true;
-            pthread_mutex_destroy(&temp1->lock);
-            pthread_cond_destroy(&temp1->notify);
-            pthread_mutex_destroy(&temp2->lock);
-            pthread_cond_destroy(&temp2->notify);
+            clientes->head->next = cliente;
+            cliente->prev = clientes->head;
+            clientes->tail = cliente;
+            cliente->next = NULL;
+            clientes->size_queue++;
+            clientes->no_ocuped++;
+          }
+          else if (clientes->size_queue >= 2)
+          {
 
-            // pthread_cancel(temp1->thread_id);
-            // pthread_cancel(temp2->thread_id);
-            enqueue(clientes, temp1->data);
-            enqueue(clientes, cliente->data);
-            enqueue(clientes, temp2->data);
-          }
-          else
-          {
             futuro_siguiente_actual_cliente = cliente->next->next;
             previo_actual_cliente = cliente->prev;
 
@@ -159,13 +167,18 @@ void *planificar(void *plan)
         {
           ((Taxista *)(taxista->data))->is_available = false;
           int time_sleep = tiempo_sleep((Taxista *)(taxista->data), (Cliente *)(cliente->data), planificador);
-          tuple_sleep *tuple_s = (tuple_sleep *)malloc(sizeof(tuple_sleep));
-          tuple_s->taxista = (Taxista *)(taxista->data);
-          tuple_s->tiempo_sleep = time_sleep;
+          tuple_sleep *tuple_s_taxi = (tuple_sleep *)malloc(sizeof(tuple_sleep));
+          tuple_sleep *tuple_s_cliente = (tuple_sleep *)malloc(sizeof(tuple_sleep));
+          tuple_s_taxi->queue=taxistas;
+          tuple_s_cliente->queue=clientes;
+          tuple_s_taxi->usuario = (void *)(taxista);
+          tuple_s_cliente->usuario = (void *)(cliente);
 
-          taxista->task->argument = tuple_s;
+          tuple_s_taxi->tiempo_sleep =tuple_s_cliente->tiempo_sleep= time_sleep;
+
+          taxista->task->argument = tuple_s_taxi;
           taxista->task->function = &sleep_thread_taxista;
-          cliente->task->argument = time_sleep;
+          cliente->task->argument = tuple_s_cliente;
           cliente->task->function = &sleep_thread_cliente;
           pthread_cond_signal(&taxista->notify);
           pthread_cond_signal(&cliente->notify);
@@ -182,28 +195,38 @@ void sleep_thread_taxista(void *arg)
 {
   tuple_sleep *tuple = (tuple_sleep *)arg;
   int time_sleep = tuple->tiempo_sleep;
-  printf("INICIO sleep taxi %d\n", time_sleep);
+  Queue *taxistas = tuple->queue;
+  printf("Atendiendo taxista %d\n", time_sleep);
   sleep(time_sleep);
 
   printf("FIN DORMIR taxi\n");
-  tuple->taxista->is_available = true;
+  ((Taxista *)(((Node *)(tuple->usuario))->data))->is_available = true;
+  taxistas->no_ocuped++;
   // pthread_detach(pthread_self());
   // pthread_cancel(pthread_self());
 }
 void sleep_thread_cliente(void *arg)
 {
-  int time_sleep = (int)arg;
-  printf("INICIO sleep cliente %d\n", time_sleep);
+  tuple_sleep *tuple = (tuple_sleep *)arg;
+  int time_sleep = tuple->tiempo_sleep;
+  printf("INICIO sleep cliente  %d %d\n",time_sleep,((Cliente *)(((Node *)(tuple->usuario))->data))->isvip);
   sleep(time_sleep);
 
+
   printf("FIN DORMIR cliente\n");
-  // pthread_detach(pthread_self());
+  free(((Node *)(tuple->usuario))->data);
+  free(((Node *)(tuple->usuario)));
+  free(tuple);
+  // pthread_mutex_lock(&((Node *)(tuple->usuario))->lock);
+  // pthread_mutex_destroy(&((Node *)(tuple->usuario))->lock);
+  // pthread_cond_destroy(&((Node *)(tuple->usuario))->notify);
+  pthread_detach(pthread_self());
   pthread_cancel(pthread_self());
 }
 Tupla *choose_queue_cliente(Planificador *planificador)
 {
   float weigths[] = {0, 65, 35};
-  Tupla *respuesta = (Tupla *)malloc(sizeof(Tupla));
+  
   if (planificador->is_waiting_x_turnos)
   {
     weigths[0] = 50;

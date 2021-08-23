@@ -37,16 +37,16 @@ int main(int argc, char const *argv[])
     // enqueue(queue, t3);
     // enqueue(queue, t4);
     // enqueue(queue, t5);
-    int n_clientes_vip = 2;
-    int n_clientes_no_vip = 2;
-    int n_taxistas = 4;
+    int n_clientes_vip = 1;
+    int n_clientes_no_vip = 1;
+    int n_taxistas = 2;
     unsigned tamanio_grilla = 10;
     double z_distance = 10;
     double u_segundos = 1;
     Planificador *planificador = crear_planificador(n_clientes_vip, n_clientes_no_vip, n_taxistas, tamanio_grilla, z_distance, u_segundos);
+    // planificar(planificador);
     pthread_t thread_planificador;
-    planificar(planificador);
-    // pthread_create(&thread_planificador, NULL, planificar, (void *)planificador);
+    pthread_create(&thread_planificador, NULL, planificar, (void *)planificador);
     // pthread_t pid;
     // pthread_create(&pid, NULL, receive_information, planificador);
     receive_information(planificador);
@@ -94,7 +94,7 @@ char **parse_comand(char *linea, char *delim)
 
 void *receive_information(Planificador *p)
 {
-    printf("here\n");
+    // printf("here\n");
     pthread_detach(pthread_self());
     char *numbers = "numbers";
     char buf[MAX_BUF_SIZE];
@@ -113,7 +113,7 @@ void *receive_information(Planificador *p)
         int nvip = atoi(numbers_recieve[0]);
         int nnvip = atoi(numbers_recieve[1]);
         aumentar_clientes(p, nvip, nnvip);
-        printf("Received: %d - %d\n", nvip, nnvip);
+        // printf("Received: %d - %d\n", nvip, nnvip);
     }
     close(fd);
 }

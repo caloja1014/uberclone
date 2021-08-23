@@ -36,6 +36,8 @@ typedef struct queue_struct
     Node *tail;
     size_t mem_size;
     int no_ocuped;
+    pthread_mutex_t mutex_dequeue;
+    pthread_cond_t cond_dequeue;
 
 } Queue;
 
@@ -46,6 +48,5 @@ Node *dequeue(Queue *q);
 void clear_queue(Queue *q);
 unsigned get_size(Queue *q);
 static void *task_thread(void *data);
-
 
 #endif /*QUEUE*/

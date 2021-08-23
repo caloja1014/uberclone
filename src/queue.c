@@ -6,11 +6,14 @@ Queue *crear_queue(size_t mem_size)
 
     queue->mem_size = mem_size;
     queue->head = queue->tail = NULL;
-    queue->size_queue =queue->no_ocuped= 0;
+    queue->size_queue = queue->no_ocuped = 0;
+    pthread_mutex_init(&queue->mutex_dequeue, NULL);
+    pthread_cond_init(&queue->cond_dequeue, NULL);
     return queue;
 }
 int enqueue(Queue *q, const void *data)
 {
+    pthread_mutex_lock(&q->mutex_dequeue);
     Node *new_node = (Node *)malloc(sizeof(Node));
     if (new_node == NULL)
     {
@@ -38,33 +41,48 @@ int enqueue(Queue *q, const void *data)
         q->tail = new_node;
     }
     q->no_ocuped++;
+    q->size_queue++;
     pthread_mutex_init(&new_node->lock, NULL);
     pthread_cond_init(&new_node->notify, NULL);
-    new_node->is_running = new_node->destroy= false;
+    new_node->is_running = new_node->destroy = false;
     pthread_create(&new_node->thread_id, NULL, task_thread, (void *)new_node);
     // pthread_join(new_node->thread_id, NULL);
 
-    q->size_queue++;
+    
+    pthread_mutex_unlock(&q->mutex_dequeue);
+    pthread_cond_broadcast(&q->cond_dequeue);
     return 0;
 }
 Node *dequeue(Queue *q)
 {
+    pthread_mutex_lock(&q->mutex_dequeue);
     if (q->size_queue > 0)
     {
         Node *temp = q->head;
-        if (q->size_queue > 1)
+        if (q->size_queue == 2)
         {
+            q->head = q->tail = q->head->next;
+            q->head->prev = q->tail->prev = NULL;
+            q->tail->next = NULL;
+        }else if (q->size_queue > 2){
             q->head = q->head->next;
-            q->head->prev = NULL;
+            q->head->prev  = NULL;
+            q->tail->next = NULL;
         }
         else
         {
             q->head = NULL;
+            q->tail = NULL;
         }
         
+
         q->size_queue--;
+        pthread_mutex_unlock(&q->mutex_dequeue);
+        pthread_cond_broadcast(&q->cond_dequeue);
         return temp;
     }
+    pthread_mutex_unlock(&q->mutex_dequeue);
+    pthread_cond_broadcast(&q->cond_dequeue);
     return NULL;
 }
 
@@ -84,7 +102,6 @@ static void *task_thread(void *data)
         pthread_mutex_unlock(&node->lock);
         (*(node->task->function))(node->task->argument);
     }
-
 }
 void clear_queue(Queue *q)
 {
