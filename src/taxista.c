@@ -5,5 +5,6 @@ Taxista * crear_taxista( int pos_x, int pos_y){
     taxista->id = 1;
     taxista->pos_x = pos_x;
     taxista->pos_y = pos_y;
+    taxista->is_available = true;
     return taxista;
 }

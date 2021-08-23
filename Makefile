@@ -5,8 +5,8 @@ CFLAGS= -Wall -c -o
 
 all: planificador incrementar_cantidad_clientes
 
-planificador: obj/sistema_control.o obj/queue.o obj/cliente.o obj/taxista.o $(DEPS)
-	gcc -o $@ obj/sistema_control.o obj/queue.o obj/cliente.o obj/taxista.o -L. -lpthread $(DFLAGS)
+planificador: obj/sistema_control.o obj/queue.o obj/cliente.o obj/taxista.o obj/planificador.o $(DEPS)
+	gcc -o $@ obj/sistema_control.o obj/queue.o obj/cliente.o obj/taxista.o obj/planificador.o -L. -lpthread -lm $(DFLAGS)
 incrementar_cantidad_clientes: obj/incrementador.o $(DEPS)
 	gcc -o $@ obj/incrementador.o $(DFLAGS)
 
