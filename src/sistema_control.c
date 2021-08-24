@@ -40,7 +40,7 @@ int main(int argc, char const *argv[])
     int n_clientes_vip = 10;
     int n_clientes_no_vip = 10;
     int n_taxistas = 2;
-    unsigned tamanio_grilla = 5;
+    unsigned tamanio_grilla = 3;
     double z_distance = 22;
     double u_segundos = 1;
     int x_turnos = 2;
