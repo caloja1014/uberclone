@@ -30,7 +30,7 @@ Planificador * crear_planificador(int n_clientes_vip, int n_clientes_no_vip, int
 void aumentar_clientes(Planificador *planificador, int n_clientes_vip, int n_clientes_no_vip);
 void atender_cliente (Planificador *planificador, Cliente *cliente);
 bool seleccionar_taxista(Planificador *planificador, Cliente *cliente);
-void aumentar_turnos(Queue *clientes, Queue *clientes_prioritarios_, bool is_prioritario);
+void aumentar_turnos(Queue *clientes, Planificador* planificador) ;
 void *planificar(void *plan);
 Tupla *choose_queue_cliente(Planificador *planificador);
 Node *choose_queue_taxista(Planificador *planificador , Cliente *cliente);

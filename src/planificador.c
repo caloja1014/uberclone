@@ -83,12 +83,37 @@ int rand_between(int minimum_number, int max_number)
   rand();
   return rand() % (max_number + 1 - minimum_number) + minimum_number;
 }
-void aumentar_turnos(Queue *clientes, Queue *clientes_prioritarios_, bool is_prioritario)
+void aumentar_turnos(Queue *clientes, Planificador* planificador) 
 {
+  Queue *clientes_prioritarios=planificador->clientes_prioritarios;
+  int x_turnos=planificador->x_turnos;
   Node *temp = clientes->head;
   while (temp != NULL)
   {
     ((Cliente *)(temp->data))->x_turnos_espera++;
+    if (((Cliente *)(temp->data))->x_turnos_espera >= x_turnos){
+      if (clientes->size_queue ==1 ){
+        clientes->head=clientes->tail = NULL;
+        clientes->size_queue = 0;
+        
+      }else if (clientes->tail == temp){
+        clientes->tail = temp->prev;
+        clientes->tail->next = NULL;
+        clientes->size_queue--;
+      }
+      else{
+        temp->prev->next = temp->next;
+        temp->next->prev = temp->prev;
+        clientes->size_queue--;
+      }
+      ((Cliente* )(temp->data))->isPriorizado = true;
+      clientes->cantidad_priorizados++;
+      planificador->is_waiting_x_turnos = true;
+      enqueue(clientes_prioritarios, temp->data);
+      pthread_cancel(temp->thread_id);
+      free(temp->data);
+      free(temp); 
+    }
     temp = temp->next;
   }
 }
@@ -105,6 +130,9 @@ void *planificar(void *plan)
     Queue *clientes = respuesta->cola;
     if (cliente != NULL)
     {
+      if (((Cliente *)(cliente->data))->isPriorizado && clientes->size_queue==0){
+        planificador->is_waiting_x_turnos = false;
+      }
       if (taxistas->no_ocuped > 0)
       {
         Node *taxista = choose_queue_taxista(planificador, (Cliente *)(cliente->data));
@@ -169,8 +197,10 @@ void *planificar(void *plan)
         }
         else
         {
+          // aumentar_turnos(clientes, planificador);
           ((Taxista *)(taxista->data))->is_available = false;
           int time_sleep = tiempo_sleep((Taxista *)(taxista->data), (Cliente *)(cliente->data), planificador);
+          // printf("TIEMPO SLEEP%d\n\n",time_sleep);
           tuple_sleep *tuple_s_taxi = (tuple_sleep *)malloc(sizeof(tuple_sleep));
           tuple_sleep *tuple_s_cliente = (tuple_sleep *)malloc(sizeof(tuple_sleep));
           tuple_s_taxi->queue=taxistas;
@@ -215,7 +245,9 @@ void sleep_thread_taxista(void *arg)
   sleep(time_sleep);
 
   // printf("FIN DORMIR taxi\n");
-  ((Taxista *)(((Node *)(tuple->usuario))->data))->is_available = true;
+  taxista->is_available = true;
+  taxista->pos_x = cliente->px_final;
+  taxista->pos_y = cliente->py_final;
   taxistas->no_ocuped++;
   printf("Taxis:       libres %d, ocupados %d\n", taxistas->no_ocuped, taxistas->size_queue-taxistas->no_ocuped);
   // pthread_detach(pthread_self());
@@ -257,6 +289,7 @@ Tupla *choose_queue_cliente(Planificador *planificador)
 
   if (r <= weigths[0] && planificador->is_waiting_x_turnos)
   {
+    // printf("From here PRIORITARIOS\n");
     respuesta->cola = planificador->clientes_prioritarios;
     respuesta->nodo = dequeue(planificador->clientes_prioritarios);
     return respuesta;

@@ -37,11 +37,11 @@ int main(int argc, char const *argv[])
     // enqueue(queue, t3);
     // enqueue(queue, t4);
     // enqueue(queue, t5);
-    int n_clientes_vip = 1;
-    int n_clientes_no_vip = 1;
+    int n_clientes_vip = 10;
+    int n_clientes_no_vip = 10;
     int n_taxistas = 2;
     unsigned tamanio_grilla = 11;
-    double z_distance = 10;
+    double z_distance = 22;
     double u_segundos = 1;
     int x_turnos = 4;
     Planificador *planificador = crear_planificador(n_clientes_vip, n_clientes_no_vip, n_taxistas, tamanio_grilla, z_distance, u_segundos, x_turnos);
