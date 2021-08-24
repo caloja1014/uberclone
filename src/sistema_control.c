@@ -40,10 +40,13 @@ int main(int argc, char const *argv[])
     int n_clientes_vip = 1;
     int n_clientes_no_vip = 1;
     int n_taxistas = 2;
-    unsigned tamanio_grilla = 10;
+    unsigned tamanio_grilla = 11;
     double z_distance = 10;
     double u_segundos = 1;
-    Planificador *planificador = crear_planificador(n_clientes_vip, n_clientes_no_vip, n_taxistas, tamanio_grilla, z_distance, u_segundos);
+    int x_turnos = 4;
+    Planificador *planificador = crear_planificador(n_clientes_vip, n_clientes_no_vip, n_taxistas, tamanio_grilla, z_distance, u_segundos, x_turnos);
+
+    printf("Grilla de %dx%d, espera de %d turnos antes de aumentar prioridad, %.0f segundos entre cada movimiento en la grilla, %.0f es la distancia maxima a un cliente para ser atendido por un taxi, %d clientes VIP, %d clientes NO VIP, %d taxis.\n", planificador->tamanio_grilla, planificador->tamanio_grilla, planificador->x_turnos, planificador->u_segundos, planificador->z_distance, planificador->n_clientes_vip, planificador->n_clientes_no_vip, planificador->n_taxistas);
     // planificar(planificador);
     pthread_t thread_planificador;
     pthread_create(&thread_planificador, NULL, planificar, (void *)planificador);

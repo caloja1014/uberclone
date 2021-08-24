@@ -7,6 +7,9 @@ Queue *crear_queue(size_t mem_size)
     queue->mem_size = mem_size;
     queue->head = queue->tail = NULL;
     queue->size_queue = queue->no_ocuped = 0;
+    queue->last_id = 0;
+    queue->cantidad_priorizados = 0;
+    queue->cantidad_atendidos = 0;
     pthread_mutex_init(&queue->mutex_dequeue, NULL);
     pthread_cond_init(&queue->cond_dequeue, NULL);
     return queue;

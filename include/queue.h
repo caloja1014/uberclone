@@ -36,8 +36,12 @@ typedef struct queue_struct
     Node *tail;
     size_t mem_size;
     int no_ocuped;
+    int last_id;
+    int cantidad_priorizados;
+    int cantidad_atendidos;
     pthread_mutex_t mutex_dequeue;
     pthread_cond_t cond_dequeue;
+
 
 } Queue;
 
