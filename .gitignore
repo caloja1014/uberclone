@@ -2,3 +2,6 @@ incrementar_cantidad_clientes
 planificador
 /obj/
 *.obj
+core
+numbers
+.vscode/
