@@ -1,5 +1,5 @@
 #include "../include/queue.h"
-
+#include "../include/cliente.h"
 Queue *crear_queue(size_t mem_size)
 {
     Queue *queue = (Queue *)malloc(sizeof(Queue));
@@ -81,6 +81,12 @@ Node *dequeue(Queue *q)
         
 
         q->size_queue--;
+        // ((Cliente *) temp->data)->x_turnos_espera++;
+        // Node *temp2=q->head;
+        // while(temp2!=NULL){
+        //     ((Cliente *)temp2->data)->x_turnos_espera++;
+        //     temp2=temp2->next;
+        // }
         // pthread_mutex_unlock(&q->mutex_dequeue);
         // pthread_cond_broadcast(&q->cond_dequeue);
         // return temp;
