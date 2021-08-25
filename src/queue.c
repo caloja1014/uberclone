@@ -11,7 +11,7 @@ Queue *crear_queue(size_t mem_size)
     queue->cantidad_priorizados = 0;
     queue->cantidad_atendidos = 0;
     pthread_mutex_init(&queue->mutex_dequeue, NULL);
-    pthread_cond_init(&queue->cond_dequeue, NULL);
+    // pthread_cond_init(&queue->cond_dequeue, NULL);
     return queue;
 }
 int enqueue(Queue *q, const void *data)
@@ -53,7 +53,7 @@ int enqueue(Queue *q, const void *data)
 
     
     pthread_mutex_unlock(&q->mutex_dequeue);
-    pthread_cond_broadcast(&q->cond_dequeue);
+    // pthread_cond_broadcast(&q->cond_dequeue);
     return 0;
 }
 Node *dequeue(Queue *q)
@@ -81,11 +81,11 @@ Node *dequeue(Queue *q)
 
         q->size_queue--;
         pthread_mutex_unlock(&q->mutex_dequeue);
-        pthread_cond_broadcast(&q->cond_dequeue);
+        // pthread_cond_broadcast(&q->cond_dequeue);
         return temp;
     }
     pthread_mutex_unlock(&q->mutex_dequeue);
-    pthread_cond_broadcast(&q->cond_dequeue);
+    // pthread_cond_broadcast(&q->cond_dequeue);
     return NULL;
 }
 

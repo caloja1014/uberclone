@@ -28,9 +28,6 @@ typedef struct node_struct
 typedef struct queue_struct
 {
 
-    pthread_mutex_t lock;
-    pthread_cond_t notify;
-
     unsigned size_queue;
     Node *head;
     Node *tail;
@@ -40,7 +37,7 @@ typedef struct queue_struct
     int cantidad_priorizados;
     int cantidad_atendidos;
     pthread_mutex_t mutex_dequeue;
-    pthread_cond_t cond_dequeue;
+    // pthread_cond_t cond_dequeue;
 
 
 } Queue;

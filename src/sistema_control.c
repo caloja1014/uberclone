@@ -37,10 +37,10 @@ int main(int argc, char const *argv[])
     // enqueue(queue, t3);
     // enqueue(queue, t4);
     // enqueue(queue, t5);
-    int n_clientes_vip = 10;
-    int n_clientes_no_vip = 10;
-    int n_taxistas = 2;
-    unsigned tamanio_grilla = 5;
+    int n_clientes_vip = 5;
+    int n_clientes_no_vip = 5;
+    int n_taxistas = 4;
+    unsigned tamanio_grilla = 3;
     double z_distance = 22;
     double u_segundos = 1;
     int x_turnos = 2;
