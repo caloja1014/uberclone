@@ -59,9 +59,10 @@ int enqueue(Queue *q, const void *data)
 Node *dequeue(Queue *q)
 {
     pthread_mutex_lock(&q->mutex_dequeue);
+    Node *temp = q->head;
     if (q->size_queue > 0)
     {
-        Node *temp = q->head;
+        
         if (q->size_queue == 2)
         {
             q->head = q->tail = q->head->next;
@@ -80,13 +81,13 @@ Node *dequeue(Queue *q)
         
 
         q->size_queue--;
-        pthread_mutex_unlock(&q->mutex_dequeue);
-        pthread_cond_broadcast(&q->cond_dequeue);
-        return temp;
+        // pthread_mutex_unlock(&q->mutex_dequeue);
+        // pthread_cond_broadcast(&q->cond_dequeue);
+        // return temp;
     }
     pthread_mutex_unlock(&q->mutex_dequeue);
     pthread_cond_broadcast(&q->cond_dequeue);
-    return NULL;
+    return temp;
 }
 
 static void *task_thread(void *data)
