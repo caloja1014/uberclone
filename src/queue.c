@@ -51,7 +51,6 @@ int enqueue(Queue *q, const void *data)
     pthread_create(&new_node->thread_id, NULL, task_thread, (void *)new_node);
     // pthread_join(new_node->thread_id, NULL);
 
-    
     pthread_mutex_unlock(&q->mutex_dequeue);
     // pthread_cond_broadcast(&q->cond_dequeue);
     return 0;
@@ -67,9 +66,11 @@ Node *dequeue(Queue *q)
             q->head = q->tail = q->head->next;
             q->head->prev = q->tail->prev = NULL;
             q->tail->next = NULL;
-        }else if (q->size_queue > 2){
+        }
+        else if (q->size_queue > 2)
+        {
             q->head = q->head->next;
-            q->head->prev  = NULL;
+            q->head->prev = NULL;
             q->tail->next = NULL;
         }
         else
@@ -77,7 +78,6 @@ Node *dequeue(Queue *q)
             q->head = NULL;
             q->tail = NULL;
         }
-        
 
         q->size_queue--;
         pthread_mutex_unlock(&q->mutex_dequeue);
@@ -102,8 +102,8 @@ static void *task_thread(void *data)
             pthread_cond_wait(&node->notify, &node->lock);
         }
         node->is_running = false;
-        pthread_mutex_unlock(&node->lock);
         (*(node->task->function))(node->task->argument);
+        pthread_mutex_unlock(&node->lock);
     }
 }
 void clear_queue(Queue *q)

@@ -6,7 +6,7 @@ void crear_taxistas(void *queue_taxista, int n_taxistas, unsigned tamanio_grilla
 void sleep_thread_taxista(void *arg);
 void sleep_thread_cliente(void *arg);
 Tupla *respuesta;
-
+pthread_mutex_t lock_taxista;
 typedef struct tuple_sleep_thread
 {
   void *usuario;
@@ -16,6 +16,7 @@ typedef struct tuple_sleep_thread
 } tuple_sleep;
 Planificador *crear_planificador(int n_clientes_vip, int n_clientes_no_vip, int n_taxistas, unsigned tamanio_grilla, double z_distance, double u_segundos, int x_turnos)
 {
+  pthread_mutex_init(&lock_taxista, NULL);
   respuesta = (Tupla *)malloc(sizeof(Tupla));
   Planificador *planificador = (Planificador *)malloc(sizeof(Planificador));
   planificador->is_waiting_x_turnos = false;
@@ -232,7 +233,10 @@ void *planificar(void *plan)
           //   planificador->is_waiting_x_turnos = true;
           // }
           // aumentar_turnos(clientes, planificador);
+          // pthread_mutex_lock(&lock_taxista);
           ((Taxista *)(taxista->data))->is_available = false;
+          // printf("CAMBIO TAXI %d a %d DESHABILITADO\n", ((Taxista *)(taxista->data))->id, ((Taxista *)(taxista->data))->is_available);
+          // pthread_mutex_unlock(&lock_taxista);
           int time_sleep = tiempo_sleep((Taxista *)(taxista->data), (Cliente *)(cliente->data), planificador);
           // printf("TIEMPO SLEEP%d\n\n",time_sleep);
           tuple_sleep *tuple_s_taxi = (tuple_sleep *)malloc(sizeof(tuple_sleep));
@@ -254,11 +258,10 @@ void *planificar(void *plan)
           cliente->task->function = &sleep_thread_cliente;
           taxistas->no_ocuped--;
           clientes->no_ocuped--;
-          pthread_cond_signal(&taxista->notify);
-          pthread_cond_signal(&cliente->notify);
-
           taxista->is_running = true;
           cliente->is_running = true;
+          pthread_cond_signal(&taxista->notify);
+          pthread_cond_signal(&cliente->notify);
         }
       }
     }
@@ -272,6 +275,7 @@ void sleep_thread_taxista(void *arg)
   Queue *taxistas = tuple->queue;
   Taxista *taxista = (Taxista *)(((Node *)(tuple->usuario))->data);
   Cliente *cliente = tuple->cliente;
+  // printf("INICIO TAXI %d a %d\n", taxista->id, taxista->is_available);
   char *text_v = cliente->isvip ? "VIP" : "NO VIP\0";
   printf("Taxis:       libres %d, ocupados %d\n", taxistas->no_ocuped, taxistas->size_queue - taxistas->no_ocuped);
   printf("Taxi %d asignado a cliente %s %d, tiempo de viajes esperado %d seg\n", taxista->id, text_v, cliente->id, time_sleep);
@@ -279,14 +283,16 @@ void sleep_thread_taxista(void *arg)
 
   // printf("FIN DORMIR taxi\n");
   // pthread_mutex_lock(&taxista->);
+  // pthread_mutex_lock(&lock_taxista);
   taxista->is_available = true;
-  printf("CAMBIO TAXI %d a HABILITADO\n",taxista->id);
+
   taxista->pos_x = cliente->px_final;
   taxista->pos_y = cliente->py_final;
   taxistas->no_ocuped++;
   printf("Taxis:       libres %d, ocupados %d\n", taxistas->no_ocuped, taxistas->size_queue - taxistas->no_ocuped);
   // pthread_detach(pthread_self());
   // pthread_cancel(pthread_self());
+  // pthread_mutex_unlock(&lock_taxista);
 }
 void sleep_thread_cliente(void *arg)
 {
