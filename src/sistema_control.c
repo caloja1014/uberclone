@@ -41,7 +41,7 @@ int main(int argc, char const *argv[])
     int n_clientes_no_vip = 5;
     int n_taxistas = 2;
     unsigned tamanio_grilla = 3;
-    double z_distance = 10;
+    double z_distance = 22;
     double u_segundos = 1;
     int x_turnos = 2;
     Planificador *planificador = crear_planificador(n_clientes_vip, n_clientes_no_vip, n_taxistas, tamanio_grilla, z_distance, u_segundos, x_turnos);
