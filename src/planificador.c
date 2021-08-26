@@ -5,6 +5,8 @@ void crear_clientes(void *queue_cliente, int n_cliente, int tamanio_grilla, bool
 void crear_taxistas(void *queue_taxista, int n_taxistas, unsigned tamanio_grilla);
 void sleep_thread_taxista(void *arg);
 void sleep_thread_cliente(void *arg);
+int prioritarios_no_vip = 0;
+int prioritarios_vip = 0;
 Tupla *respuesta;
 pthread_mutex_t lock_taxista;
 typedef struct tuple_sleep_thread
@@ -131,6 +133,44 @@ void aumentar_turnos(Queue *clientes, Planificador *planificador)
   // pthread_mutex_unlock(&clientes->mutex_dequeue);
   // pthread_cond_broadcast(&clientes->cond_dequeue);
 }
+// {
+//   if (((Cliente *)(cliente->data))->x_turnos_espera >= planificador->x_turnos && !((Cliente *)(cliente->data))->isPriorizado)
+//         {
+//           pthread_mutex_lock(&clientes->mutex_dequeue);
+//           ((Cliente *)(cliente->data))->isPriorizado = true;
+//           char *t_vip = ((Cliente *)(cliente->data))->isvip ? "VIP" : "NO VIP";
+//           int id_cliente = ((Cliente *)(cliente->data))->id;
+//           Queue *clientes_prioritarios = planificador->clientes_prioritarios;
+//           if (clientes_prioritarios->size_queue == 0)
+//           {
+//             cliente->prev = cliente->next = NULL;
+//             clientes_prioritarios->head = clientes_prioritarios->tail = cliente;
+//           }
+//           else if (clientes->size_queue == 1)
+//           {
+//             clientes_prioritarios->head->next = cliente;
+//             cliente->prev = clientes_prioritarios->head;
+//             cliente->next = NULL;
+//             clientes_prioritarios->tail = cliente;
+//           }
+//           else
+//           {
+//             cliente->prev = clientes_prioritarios->tail;
+//             cliente->next = NULL;
+//             clientes_prioritarios->tail->next = cliente;
+//             clientes_prioritarios->tail = cliente;
+//           }
+//           clientes_prioritarios->size_queue++;
+//           clientes_prioritarios->no_ocuped++;
+
+//           clientes->cantidad_priorizados++;
+//           planificador->is_waiting_x_turnos = true;
+//           pthread_mutex_lock(&clientes->mutex_dequeue);
+//           printf("Taxi no pudo ser asignado a cliente %d\nAHHHHHHHHHHHHHHHHHHHHHHHHHHHHH\n\n",clientes->cantidad_priorizados);
+//           aumentar_turnos(clientes, planificador);
+//           pthread_mutex_unlock(&clientes->mutex_dequeue);
+//         }
+// };
 void *planificar(void *plan)
 {
   Planificador *planificador = (Planificador *)plan;
@@ -146,122 +186,170 @@ void *planificar(void *plan)
       Queue *clientes = respuesta->cola;
       if (cliente != NULL)
       {
-        // if (((Cliente *)(cliente->data))->x_turnos_espera >= planificador->x_turnos && !((Cliente *)(cliente->data))->isPriorizado)
-        // {
-        //   ((Cliente *)(cliente->data))->isPriorizado = true;
-        //   clientes->cantidad_priorizados++;
-        //   planificador->is_waiting_x_turnos = true;
-        //   enqueue(planificador->clientes_prioritarios, cliente->data);
-        //   pthread_cancel(cliente->thread_id);
-        //   free(cliente->data);
-        //   free(cliente);
-        //   cliente = NULL;
-        //   printf("IS PRIORIZADO\n\n");
-
-        //   aumentar_turnos(clientes, planificador);
-        // }
-        // else if (((Cliente *)(cliente->data))->isPriorizado && clientes->size_queue == 0)
-        // {
-        //   printf("IS CHANGE\n\n");
-        //   planificador->is_waiting_x_turnos = false;
-        // }
-
-        Node *taxista = choose_queue_taxista(planificador, (Cliente *)(cliente->data));
-
-        if (taxista == NULL)
+        if (((Cliente *)(cliente->data))->isPriorizado && clientes->size_queue == 0)
         {
-          Node *previo_actual_cliente;
-          Node *futuro_siguiente_actual_cliente;
-
-          if (clientes->size_queue == 0)
-          {
-            clientes->head = clientes->tail = cliente;
-            cliente->next = cliente->prev = NULL;
-            clientes->size_queue++;
-            clientes->no_ocuped++;
-          }
-          // if (clientes->size_queue == 0 || clientes->size_queue == 1)
-          // {
-          //   cliente->destroy = true;
-          //   pthread_mutex_lock(&cliente->lock);
-          //   pthread_mutex_destroy(&cliente->lock);
-          //   pthread_cond_destroy(&cliente->notify);
-          // pthread_cancel(cliente->thread_id);
-          //   enqueue(clientes, cliente->data);
-          // }
-          else if (clientes->size_queue == 1)
-          {
-            clientes->head->next = cliente;
-            cliente->prev = clientes->head;
-            clientes->tail = cliente;
-            cliente->next = NULL;
-            clientes->size_queue++;
-            clientes->no_ocuped++;
-          }
-          else if (clientes->size_queue >= 2)
-          {
-
-            futuro_siguiente_actual_cliente = cliente->next->next;
-            previo_actual_cliente = cliente->prev;
-
-            if (previo_actual_cliente == NULL)
-            {
-              cliente->next->prev = NULL;
-              clientes->head = cliente->next;
-            }
-            else
-            {
-
-              previo_actual_cliente->next = cliente->next;
-              cliente->next->prev = previo_actual_cliente;
-            }
-            cliente->next->next = cliente;
-            cliente->prev = cliente->next;
-            cliente->next = futuro_siguiente_actual_cliente;
-            if (futuro_siguiente_actual_cliente != NULL)
-            {
-              futuro_siguiente_actual_cliente->prev = cliente;
-            }
-            clientes->size_queue++;
-            clientes->no_ocuped++;
-          }
+          planificador->is_waiting_x_turnos = false;
         }
+        // printf("TURNOS: %d, PLANIFICADOR TURNOS: %d  ES PRIORIZADO: %d\n\n", ((Cliente *)(cliente->data))->x_turnos_espera, planificador->x_turnos, ((Cliente *)(cliente->data))->isPriorizado);
+        if (((Cliente *)(cliente->data))->x_turnos_espera >= planificador->x_turnos && !((Cliente *)(cliente->data))->isPriorizado)
+        {
+          // pthread_mutex_lock(&clientes->mutex_dequeue);
+          // clientes->cantidad_priorizados++;
+          // pthread_mutex_unlock(&clientes->mutex_dequeue);
+          if (((Cliente *)(cliente->data))->isvip)
+          {
+            prioritarios_vip++;
+          }
+          else
+          {
+            prioritarios_no_vip++;
+          }
+          Queue *clientes_prioritarios = planificador->clientes_prioritarios;
+          pthread_mutex_lock(&clientes_prioritarios->mutex_dequeue);
+          ((Cliente *)(cliente->data))->isPriorizado = true;
+          char *t_vip = ((Cliente *)(cliente->data))->isvip ? "VIP" : "NO VIP";
+          int id_cliente = ((Cliente *)(cliente->data))->id;
+
+          if (clientes_prioritarios->size_queue == 0)
+          {
+            cliente->prev = cliente->next = NULL;
+            clientes_prioritarios->head = clientes_prioritarios->tail = cliente;
+          }
+          else
+          {
+            clientes_prioritarios->tail->next = cliente;
+            cliente->prev = clientes_prioritarios->tail;
+            cliente->next = NULL;
+            clientes_prioritarios->tail = cliente;
+          }
+          // else if (clientes->size_queue == 1)
+          // {
+          //   clientes_prioritarios->head->next = cliente;
+          //   cliente->prev = clientes_prioritarios->head;
+          //   cliente->next = NULL;
+          //   clientes_prioritarios->tail = cliente;
+          // }
+          // else
+          // {
+          //   cliente->prev = clientes_prioritarios->tail;
+          //   cliente->next = NULL;
+          //   clientes_prioritarios->tail->next = cliente;
+          //   clientes_prioritarios->tail = cliente;
+          // }
+          clientes_prioritarios->size_queue++;
+          clientes_prioritarios->no_ocuped++;
+
+          // clientes->cantidad_priorizados++;
+          planificador->is_waiting_x_turnos = true;
+          pthread_mutex_lock(&clientes->mutex_dequeue);
+          printf("Taxi no pudo ser asignado a cliente %d\nAHHHHHHHHHHHHHHHHHHHHHHHHHHHHH\n\n", clientes->cantidad_priorizados);
+          aumentar_turnos(clientes, planificador);
+          pthread_mutex_unlock(&clientes->mutex_dequeue);
+          pthread_mutex_unlock(&clientes_prioritarios->mutex_dequeue);
+        }
+
         else
         {
-          // if (((Cliente *)cliente->data)->isPriorizado)
-          // {
-          //   planificador->is_waiting_x_turnos = true;
-          // }
-          // aumentar_turnos(clientes, planificador);
-          // pthread_mutex_lock(&lock_taxista);
-          ((Taxista *)(taxista->data))->is_available = false;
-          // printf("CAMBIO TAXI %d a %d DESHABILITADO\n", ((Taxista *)(taxista->data))->id, ((Taxista *)(taxista->data))->is_available);
-          // pthread_mutex_unlock(&lock_taxista);
-          int time_sleep = tiempo_sleep((Taxista *)(taxista->data), (Cliente *)(cliente->data), planificador);
-          // printf("TIEMPO SLEEP%d\n\n",time_sleep);
-          tuple_sleep *tuple_s_taxi = (tuple_sleep *)malloc(sizeof(tuple_sleep));
-          tuple_sleep *tuple_s_cliente = (tuple_sleep *)malloc(sizeof(tuple_sleep));
-          tuple_s_taxi->queue = taxistas;
-          tuple_s_taxi->usuario = (void *)(taxista);
+          Node *taxista = choose_queue_taxista(planificador, (Cliente *)(cliente->data));
+          if (taxista == NULL)
+          {
 
-          tuple_s_taxi->cliente = (Cliente *)(cliente->data);
+            Node *previo_actual_cliente;
+            Node *futuro_siguiente_actual_cliente;
 
-          tuple_s_cliente->queue = clientes;
-          tuple_s_cliente->usuario = (void *)(cliente);
-          tuple_s_cliente->cliente = (Cliente *)(cliente->data);
+            if (clientes->size_queue == 0)
+            {
+              clientes->head = clientes->tail = cliente;
+              cliente->next = cliente->prev = NULL;
+              clientes->size_queue++;
+              clientes->no_ocuped++;
+            }
+            // if (clientes->size_queue == 0 || clientes->size_queue == 1)
+            // {
+            //   cliente->destroy = true;
+            //   pthread_mutex_lock(&cliente->lock);
+            //   pthread_mutex_destroy(&cliente->lock);
+            //   pthread_cond_destroy(&cliente->notify);
+            // pthread_cancel(cliente->thread_id);
+            //   enqueue(clientes, cliente->data);
+            // }
+            else if (clientes->size_queue == 1)
+            {
+              clientes->head->next = cliente;
+              cliente->prev = clientes->head;
+              clientes->tail = cliente;
+              cliente->next = NULL;
+              clientes->size_queue++;
+              clientes->no_ocuped++;
+            }
+            else if (clientes->size_queue >= 2)
+            {
 
-          tuple_s_taxi->tiempo_sleep = tuple_s_cliente->tiempo_sleep = time_sleep;
+              futuro_siguiente_actual_cliente = cliente->next->next;
+              previo_actual_cliente = cliente->prev;
 
-          taxista->task->argument = tuple_s_taxi;
-          taxista->task->function = &sleep_thread_taxista;
-          cliente->task->argument = tuple_s_cliente;
-          cliente->task->function = &sleep_thread_cliente;
-          taxistas->no_ocuped--;
-          clientes->no_ocuped--;
-          taxista->is_running = true;
-          cliente->is_running = true;
-          pthread_cond_signal(&taxista->notify);
-          pthread_cond_signal(&cliente->notify);
+              if (previo_actual_cliente == NULL)
+              {
+                cliente->next->prev = NULL;
+                clientes->head = cliente->next;
+              }
+              else
+              {
+
+                previo_actual_cliente->next = cliente->next;
+                cliente->next->prev = previo_actual_cliente;
+              }
+              cliente->next->next = cliente;
+              cliente->prev = cliente->next;
+              cliente->next = futuro_siguiente_actual_cliente;
+              if (futuro_siguiente_actual_cliente != NULL)
+              {
+                futuro_siguiente_actual_cliente->prev = cliente;
+              }
+              clientes->size_queue++;
+              clientes->no_ocuped++;
+            }
+          }
+
+          else
+          {
+            // if (((Cliente *)cliente->data)->isPriorizado)
+            // {
+            //   planificador->is_waiting_x_turnos = true;
+            // }
+            pthread_mutex_lock(&clientes->mutex_dequeue);
+            aumentar_turnos(clientes, planificador);
+            pthread_mutex_unlock(&clientes->mutex_dequeue);
+            // pthread_mutex_lock(&lock_taxista);
+            ((Taxista *)(taxista->data))->is_available = false;
+            // printf("CAMBIO TAXI %d a %d DESHABILITADO\n", ((Taxista *)(taxista->data))->id, ((Taxista *)(taxista->data))->is_available);
+            // pthread_mutex_unlock(&lock_taxista);
+            int time_sleep = tiempo_sleep((Taxista *)(taxista->data), (Cliente *)(cliente->data), planificador);
+            // printf("TIEMPO SLEEP%d\n\n",time_sleep);
+            tuple_sleep *tuple_s_taxi = (tuple_sleep *)malloc(sizeof(tuple_sleep));
+            tuple_sleep *tuple_s_cliente = (tuple_sleep *)malloc(sizeof(tuple_sleep));
+            tuple_s_taxi->queue = taxistas;
+            tuple_s_taxi->usuario = (void *)(taxista);
+
+            tuple_s_taxi->cliente = (Cliente *)(cliente->data);
+
+            tuple_s_cliente->queue = clientes;
+            tuple_s_cliente->usuario = (void *)(cliente);
+            tuple_s_cliente->cliente = (Cliente *)(cliente->data);
+
+            tuple_s_taxi->tiempo_sleep = tuple_s_cliente->tiempo_sleep = time_sleep;
+
+            taxista->task->argument = tuple_s_taxi;
+            taxista->task->function = &sleep_thread_taxista;
+            cliente->task->argument = tuple_s_cliente;
+            cliente->task->function = &sleep_thread_cliente;
+            taxistas->no_ocuped--;
+            clientes->no_ocuped--;
+            taxista->is_running = true;
+            cliente->is_running = true;
+            pthread_cond_signal(&taxista->notify);
+            pthread_cond_signal(&cliente->notify);
+          }
         }
       }
     }
@@ -301,8 +389,9 @@ void sleep_thread_cliente(void *arg)
   Queue *clientes = tuple->queue;
   Cliente *cliente = (Cliente *)(((Node *)(tuple->usuario))->data);
   char *text_v = cliente->isvip ? "VIP" : "NO VIP\0";
+  int cantidad_prioritarios = cliente->isvip ? prioritarios_vip : prioritarios_no_vip;
   clientes->cantidad_atendidos++;
-  printf("Clientes %s siendo atendidos %d, en espera normal %d, priorizados %d\n", text_v, clientes->cantidad_atendidos, clientes->no_ocuped, clientes->cantidad_priorizados);
+  printf("Clientes %s siendo atendidos %d, en espera normal %d, priorizados %d\n", text_v, clientes->cantidad_atendidos, clientes->no_ocuped, cantidad_prioritarios);
   sleep(time_sleep);
   clientes->cantidad_atendidos--;
 
